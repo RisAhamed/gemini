@@ -13,6 +13,7 @@ insert1 = """insert into student (Name, class, section) values ('aslam', 'AIDS',
 insert2 = """insert into student (Name, class, section) values ('ajmal', 'ECE', 'A');"""
 insert3 = """insert into student (Name, class, section) values ('rayan', 'ECE', 'B');"""
 
+
 cursor.execute(insert)
 cursor.execute(insert1)
 cursor.execute(insert2)
