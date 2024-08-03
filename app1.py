@@ -31,7 +31,7 @@ def execute_sql_query(sql, db_name):
         # Fetch all rows from the query
         rows = cursor.fetchall()
         connection.commit()
-        # connection.close()
+        connection.close()
         # Print the rows
         for row in rows:
             print(row)
