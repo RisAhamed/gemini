@@ -1,12 +1,14 @@
-from dotenv import load_dotenv
-load_dotenv()
+from dotenv import dotenv_values
+
+dotenv_values = dotenv_values('.env')
+GOOGLE_API_KEY = dotenv_values['GOOGLE_API_KEY']
 
 import streamlit as st
 import os ,sys
 import sqlite3
 import google.generativeai as gen
 
-gen.configure(api_key= os.getenv("GOOGLE_API_KEY"))
+gen.configure(api_key=str(GOOGLE_API_KEY))
 
 # Connect to SQLite database
 
@@ -28,7 +30,8 @@ def execute_sql_query(sql, db_name):
 
         # Fetch all rows from the query
         rows = cursor.fetchall()
-
+        connection.commit()
+        # connection.close()
         # Print the rows
         for row in rows:
             print(row)
@@ -38,16 +41,19 @@ def execute_sql_query(sql, db_name):
 
     except sqlite3.Error as error:
         print("Error while executing SQL query:", error)
+        return "Error: " + str(error)
 
     finally:
         # Close the connection to the database
         if connection:
+            connection.commit()
             connection.close()
 
 
 prompt = [
     '''
-    I am an SQL expert system. I can convert your English queries into SQL queries and execute them on the database. The database contains information about students with attributes: Name, Class, and Section.
+    I am an SQL expert system. I can convert your English queries into SQL queries and execute them on the database.
+    The database contains information about students with attributes: Name, Class, and Section.
 
     Please enter your English query. If the query is invalid, I will let you know.
 
@@ -74,10 +80,16 @@ question = st.text_input("input -->>",key = "input")
 
 submit = st.button("Submit")
 if submit:
-    response = get_gemini_response(question,prompt)
-    response = execute_sql_query(response,'student.db')
-    st.subheader("response")
-
-    for  row in response:
-        st.write(row)
-        st.write("\n")
+    response = get_gemini_response(question, prompt)
+    print(response)
+    result = execute_sql_query(response, 'student.db')
+    
+    if isinstance(result, str) and result.startswith("Error: "):
+        st.error(result)
+    elif result is not None:
+        st.subheader("response")
+        for row in result:
+            st.write(row)
+            st.write("\n")
+    else:
+        st.error("Unknown error occurred")
